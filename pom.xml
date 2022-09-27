@@ -9,9 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.vanthan</groupId>
-    <artifactId>springboot-vn-new</artifactId>
+    <artifactId>springboot-vn-proxy</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>vn-new-server</name>
+    <name>vn-new-proxy</name>
     <description>New Server</description>
     <properties>
         <java.version>1.8</java.version>
