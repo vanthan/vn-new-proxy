@@ -2,6 +2,7 @@ package com.vanthan.vn.service.impl;
 
 import com.vanthan.vn.dto.BaseResponse;
 import com.vanthan.vn.dto.EmailDTO;
+import com.vanthan.vn.model.TransactionDetail;
 import com.vanthan.vn.service.SendMailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,9 +25,11 @@ public class SendMailServiceImpl implements SendMailService {
             SimpleMailMessage mailMessage = new SimpleMailMessage();
 
             mailMessage.setFrom(sender);
-            mailMessage.setTo(emailDTO.getRecipient());
-            mailMessage.setText(emailDTO.getMessage());
+            TransactionDetail transactionDetail = new TransactionDetail();
+            String mail = transactionDetail.getEmail();
+            mailMessage.setTo(mail);
             mailMessage.setSubject(emailDTO.getSubject());
+            mailMessage.setText(emailDTO.getMessage());
 
             javaMailSender.send(mailMessage);
             response.setMessage("Send mail successfully!!");
