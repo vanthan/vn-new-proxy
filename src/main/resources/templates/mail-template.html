@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<p style="color: red; font-weight: bold" th:text="'Dear ' + ${fullName} + ','"></p>
+<p th:text="'You have an order with us with the following information: '"></p>
+<p th:text="'Tên sản phẩm ' + ${productName} + ','"></p>
+<p th:text="'Số lượng ' + ${quantity} + ','"></p>
+<p th:text="'Tổng tiền ' + ${total} + ','"></p>
+<p th:text="'Trạng thái ' + ${status} + ','"></p>
+<p th:text="'Phương thức thanh toán ' + ${paymentMethod} + ','"></p>
+<p>Thanks!</p>
+</body>
+</html>
