@@ -4,6 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+import java.util.Map;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -11,5 +14,6 @@ public class EmailDTO {
     private String recipient;
     private String message;
     private String subject;
-    private String attachment;
+    private List<Object> attachments;
+    private Map<String, Object> props;
 }

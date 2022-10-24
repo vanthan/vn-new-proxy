@@ -3,11 +3,20 @@
 <body>
 <p style="color: red; font-weight: bold" th:text="'Dear ' + ${fullName} + ','"></p>
 <p th:text="'You have an order with us with the following information: '"></p>
-<p th:text="'Tên sản phẩm ' + ${productName} + ','"></p>
-<p th:text="'Số lượng ' + ${quantity} + ','"></p>
-<p th:text="'Tổng tiền ' + ${total} + ','"></p>
-<p th:text="'Trạng thái ' + ${status} + ','"></p>
-<p th:text="'Phương thức thanh toán ' + ${paymentMethod} + ','"></p>
+<table border="1">
+    <tr>
+        <th>index</th>
+        <th>productName</th>
+        <th>qty</th>
+    </tr>
+    <tr th:each="prd, state : ${product}">
+        <td th:utext="${state.index}">index</td>
+        <td th:utext="${prd.productName}">productName</td>
+        <td th:utext="${prd.qty}">qty</td>
+    </tr>
+</table>
+<p style="color: red; font-weight: bold" th:text="'Dear ' + ${status} + ','"></p>
+<p style="color: red; font-weight: bold" th:text="'paymentMethod ' + ${paymentMethod} + ','"></p>
 <p>Thanks!</p>
 </body>
 </html>
