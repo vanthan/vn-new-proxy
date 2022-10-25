@@ -26,6 +26,7 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 
 @Service
+
 public class SendMailServiceImpl implements SendMailService {
 
     @Autowired
@@ -70,33 +71,27 @@ public class SendMailServiceImpl implements SendMailService {
                     MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED,
                     StandardCharsets.UTF_8.name());
             Context context = new Context();
-
-            List<ProductDetailDTO> productDetailDTOS = new ArrayList<ProductDetailDTO>();
-            ProductDetailDTO sp1 = new ProductDetailDTO();
-            sp1.setProductName("sp1");
-            sp1.setQty("123");
-            sp1.setTotal("999");
-            productDetailDTOS.add(sp1);
-
-            ProductDetailDTO sp2 = new ProductDetailDTO();
-            sp2.setProductName("sp2");
-            sp2.setQty("234");
-            sp2.setTotal("999");
-            productDetailDTOS.add(sp2);
+            System.out.println(emailDTO.toString());
+//            List<ProductDetailDTO> productDetailDTOS = new ArrayList<ProductDetailDTO>();
+//            ProductDetailDTO sp1 = new ProductDetailDTO();
+//            sp1.setProductName("sp1");
+//            sp1.setQty("123");
+//            sp1.setTotal("999");
+//            productDetailDTOS.add(sp1);
 
             // Set Variables
-            Map<String, Object> props = new HashMap<String, Object>();
-            props.put("fullName", "Nguyen Thi Tinh!");
-            props.put("product", productDetailDTOS);
-            props.put("total", "123");
-            props.put("status", "status");
-            props.put("paymentMethod", "paymentMethod");
-            emailDTO.setProps(props);
+//            Map<String, Object> props = new HashMap<String, Object>();
+//            props.put("fullName", "Nguyen Thi Tinh!");
+//            props.put("product", productDetailDTOS);
+//            props.put("total", "123");
+//            props.put("status", "status");
+//            props.put("paymentMethod", "paymentMethod");
+//            emailDTO.setProps(props);
             // Set Variables
 
             context.setVariables(emailDTO.getProps());
 
-            final String template = "mail-template";
+            final String template = emailDTO.getTemplate().equals("mail-template") ? "mail-template" : "mail-template";
             String html = templateEngine.process(template, context);
 
             helper.setTo(emailDTO.getRecipient());

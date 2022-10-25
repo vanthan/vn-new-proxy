@@ -11,6 +11,7 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 public class EmailDTO {
+    private String template;
     private String recipient;
     private String message;
     private String subject;

@@ -8,11 +8,13 @@
         <th>index</th>
         <th>productName</th>
         <th>qty</th>
+        <th>price</th>
     </tr>
     <tr th:each="prd, state : ${product}">
         <td th:utext="${state.index}">index</td>
         <td th:utext="${prd.productName}">productName</td>
-        <td th:utext="${prd.qty}">qty</td>
+        <td th:utext="${prd.quantity}">qty</td>
+        <td th:utext="${prd.price}">price</td>
     </tr>
 </table>
 <p style="color: red; font-weight: bold" th:text="'Dear ' + ${status} + ','"></p>
