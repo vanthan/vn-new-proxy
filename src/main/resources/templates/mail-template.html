@@ -9,16 +9,18 @@
         <th>productName</th>
         <th>qty</th>
         <th>price</th>
+        <th>total</th>
     </tr>
     <tr th:each="prd, state : ${product}">
         <td th:utext="${state.index}">index</td>
         <td th:utext="${prd.productName}">productName</td>
         <td th:utext="${prd.quantity}">qty</td>
         <td th:utext="${prd.price}">price</td>
+        <td th:utext="${prd.total}">price</td>
     </tr>
 </table>
-<p style="color: red; font-weight: bold" th:text="'Dear ' + ${status} + ','"></p>
-<p style="color: red; font-weight: bold" th:text="'paymentMethod ' + ${paymentMethod} + ','"></p>
+<p style="color: red; font-weight: bold" th:text="'Status: ' + ${status} + ','"></p>
+<p style="color: red; font-weight: bold" th:text="'paymentMethod: ' + ${paymentMethod} + ','"></p>
 <p>Thanks!</p>
 </body>
 </html>
