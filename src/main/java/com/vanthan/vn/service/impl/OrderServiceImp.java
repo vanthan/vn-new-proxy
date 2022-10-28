@@ -56,6 +56,9 @@ public class OrderServiceImp implements OrderService {
         order.setUserId(userid);
         order.setUsername(username);
         order.setEmail(email);
+        order.setPaymentMethod("CASH");
+        order.setStatus("CREATED");
+        orderRepository.save(order);
 
         for (OrderLineForm orderLine : orderLines) {
             Optional<Product> maybeProduct = productRepository.findById(orderLine.getProductId());
@@ -79,10 +82,7 @@ public class OrderServiceImp implements OrderService {
             //set change of total quantity + total cost
             order.setTotalItems(order.getTotalItems() + orderLine.getQuantity());
             order.setTotalCost(order.getTotalCost() + (product.getPrice() * orderLine.getQuantity()));
-            order.setPaymentMethod("CASH");
-            order.setStatus("CREATED");
 
-            orderRepository.save(order);
             //save order item
             OrderItem item = new OrderItem();
             item.setOrderId(order.getId());
@@ -92,6 +92,9 @@ public class OrderServiceImp implements OrderService {
             item.setListPrice(product.getPrice());
             orderDetailRepository.save(item);
         }
+
+        orderRepository.updateOrderById(order.getId(), order.getTotalCost(), order.getTotalItems());
+
         response.setCode("00");
         response.setMessage("success");
         response.setBody("Created an order");
