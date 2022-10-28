@@ -106,7 +106,7 @@ public class OrderServiceImp implements OrderService {
         // if existed
         if (!maybeOrder.isPresent()) {
             response.setCode("11");
-            response.setMessage("Not found: " + orderId);
+            response.setMessage("Order not found: " + orderId);
             return response;
         }
 
@@ -144,6 +144,15 @@ public class OrderServiceImp implements OrderService {
     @Override
     public BaseResponse<List<Order>> findOrdersByUserId(int userId) {
         BaseResponse<List<Order>> response = new BaseResponse<>();
+        Optional<User> maybeUser = userRepository.findById(userId);
+
+        // if existed
+        if (!maybeUser.isPresent()) {
+            response.setCode("11");
+            response.setMessage("User not found: " + userId);
+            return response;
+        }
+
         response.setBody(orderRepository.findOrderByUserId(userId));
         return response;
     }
