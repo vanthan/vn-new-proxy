@@ -11,15 +11,26 @@ import com.vanthan.vn.repository.OrderRepository;
 import com.vanthan.vn.repository.ProductRepository;
 import com.vanthan.vn.repository.UserRepository;
 import com.vanthan.vn.service.OrderService;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import org.springframework.web.client.RestTemplate;
+import com.vanthan.vn.util.CommonUtil;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.*;
 
 @Service
+@Log4j2
 public class OrderServiceImp implements OrderService {
+
+    @Value("${base.url.authen}")
+    private String baseUrl;
     private final OrderDetailRepository orderDetailRepository;
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
@@ -40,17 +51,30 @@ public class OrderServiceImp implements OrderService {
     }
 
     @Override
-    public BaseResponse<String> createOrder(OrderForm form, String token) {
+    public BaseResponse<String> createOrder(OrderForm form, HttpServletRequest request) {
         BaseResponse<String> response = new BaseResponse<>();
+
+        EmailDTO emailDTO = new EmailDTO();
+        // Map props => set props email
+        Map<String, Object> props = new HashMap<String, Object>();
+
         // get order item from the request list
         List<OrderLineForm> orderLines = form.getOrderLines();
         Order order = new Order();
         // get info from token: email + full name
+        String token = authTokenFilter.parseJwt(request);
 
-        Map<String,Object> userInfo = jwtUtils.getClaimFromToken(token, claims -> {return claims;});
+        Map<String, Object> userInfo = jwtUtils.getClaimFromToken(token, claims -> {
+            return claims;
+        });
         int userid = Integer.parseInt(userInfo.get("id").toString());
         String email = userInfo.get("email").toString();
         String username = userInfo.get("username").toString();
+
+        // SET EMAILĐTO
+        emailDTO.setTemplate("mail-template");
+        emailDTO.setSubject("Subject_TEST");
+        emailDTO.setRecipient(email);
 
         //get user info from token then set to order
         order.setUserId(userid);
@@ -64,14 +88,14 @@ public class OrderServiceImp implements OrderService {
             Optional<Product> maybeProduct = productRepository.findById(orderLine.getProductId());
             if (!maybeProduct.isPresent()) {
                 response.setCode("001");
-                response.setMessage("Product not found: " +  orderLine.getProductId());
+                response.setMessage("Product not found: " + orderLine.getProductId());
                 return response;
             }
             // get product
             Product product = maybeProduct.get();
 
             // update quantity in db
-            if (product.getQuantity() < orderLine.getQuantity()){
+            if (product.getQuantity() < orderLine.getQuantity()) {
                 throw new IllegalArgumentException("Product is out of stock: " + orderLine.getProductId());
             }
             product.setQuantity(product.getQuantity() - orderLine.getQuantity());
@@ -82,6 +106,10 @@ public class OrderServiceImp implements OrderService {
             //set change of total quantity + total cost
             order.setTotalItems(order.getTotalItems() + orderLine.getQuantity());
             order.setTotalCost(order.getTotalCost() + (product.getPrice() * orderLine.getQuantity()));
+            order.setPaymentMethod("CASH");
+            order.setStatus("CREATED");
+
+            orderRepository.save(order);
 
             //save order item
             OrderItem item = new OrderItem();
@@ -93,12 +121,27 @@ public class OrderServiceImp implements OrderService {
             orderDetailRepository.save(item);
         }
 
-        orderRepository.updateOrderById(order.getId(), order.getTotalCost(), order.getTotalItems());
-
         response.setCode("00");
         response.setMessage("success");
         response.setBody("Created an order");
         return response;
+        // Call API Send Mail
+        String url = baseUrl + "/sendMail";
+        props.put("fullName", username);
+        props.put("product", orderLines);
+        props.put("paymentMethod", order.getPaymentMethod());
+        props.put("total", order.getTotalCost());
+        props.put("status", order.getStatus());
+        emailDTO.setProps(props);
+
+        log.info("Resquest Body {}", CommonUtil.convertFromObject(emailDTO));
+
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        HttpEntity<EmailDTO> requestSaveProduct = new HttpEntity<>(emailDTO, headers);
+        restTemplate.exchange(url, HttpMethod.POST, requestSaveProduct, new ParameterizedTypeReference<BaseResponse<Object>>() {
+        });
     }
 
     @Override
@@ -122,7 +165,7 @@ public class OrderServiceImp implements OrderService {
 
         // order item list
         List<OrderItemResult> orderItemResultList = new ArrayList<>();
-        for (OrderItem orderItem : order.getItems()){
+        for (OrderItem orderItem : order.getItems()) {
             OrderItemResult orderItemResult = new OrderItemResult();
             orderItemResult.setProductId(orderItem.getProductId());
             orderItemResult.setProductName(orderItem.getProductName());

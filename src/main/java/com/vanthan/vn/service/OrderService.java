@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 public interface OrderService {
-    BaseResponse<String> createOrder(OrderForm form, String token);
+    BaseResponse<String> createOrder(OrderForm form, HttpServletRequest request);
     BaseResponse<OrderResult> getOrder(int orderId);
     BaseResponse<List<Order>> findOrdersByUserId(int userId);
 }
