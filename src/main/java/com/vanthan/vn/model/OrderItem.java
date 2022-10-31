@@ -17,4 +17,5 @@ public class OrderItem {
     private String productName;
     private int quantity;
     private int listPrice; // gia niem yet
+    private int totalPrice;
 }

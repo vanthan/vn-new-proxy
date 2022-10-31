@@ -34,8 +34,6 @@ public class SendMailServiceImpl implements SendMailService {
 
     @Autowired
     private SpringTemplateEngine templateEngine;
-    @Autowired
-    JavaMailSender javaMailSender;
 
     @Value("${spring.mail.username}")
     private String sender;
@@ -53,7 +51,7 @@ public class SendMailServiceImpl implements SendMailService {
             mailMessage.setSubject(emailDTO.getSubject());
             mailMessage.setText(emailDTO.getMessage());
 
-            javaMailSender.send(mailMessage);
+            emailSender.send(mailMessage);
             response.setMessage("Send mail successfully!!");
         } catch (Exception ex) {
             System.out.println(ex.getStackTrace());
@@ -72,22 +70,6 @@ public class SendMailServiceImpl implements SendMailService {
                     StandardCharsets.UTF_8.name());
             Context context = new Context();
             System.out.println(emailDTO.toString());
-//            List<ProductDetailDTO> productDetailDTOS = new ArrayList<ProductDetailDTO>();
-//            ProductDetailDTO sp1 = new ProductDetailDTO();
-//            sp1.setProductName("sp1");
-//            sp1.setQty("123");
-//            sp1.setTotal("999");
-//            productDetailDTOS.add(sp1);
-
-            // Set Variables
-//            Map<String, Object> props = new HashMap<String, Object>();
-//            props.put("fullName", "Nguyen Thi Tinh!");
-//            props.put("product", productDetailDTOS);
-//            props.put("total", "123");
-//            props.put("status", "status");
-//            props.put("paymentMethod", "paymentMethod");
-//            emailDTO.setProps(props);
-            // Set Variables
 
             context.setVariables(emailDTO.getProps());
 

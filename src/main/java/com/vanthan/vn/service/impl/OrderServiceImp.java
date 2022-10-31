@@ -2,10 +2,12 @@ package com.vanthan.vn.service.impl;
 
 
 import com.vanthan.vn.dto.*;
-import com.vanthan.vn.dto.OrderResult;
 import com.vanthan.vn.jwt.AuthTokenFilter;
 import com.vanthan.vn.jwt.JwtUtils;
-import com.vanthan.vn.model.*;
+import com.vanthan.vn.model.Order;
+import com.vanthan.vn.model.OrderItem;
+import com.vanthan.vn.model.Product;
+import com.vanthan.vn.model.User;
 import com.vanthan.vn.repository.OrderDetailRepository;
 import com.vanthan.vn.repository.OrderRepository;
 import com.vanthan.vn.repository.ProductRepository;
@@ -13,15 +15,9 @@ import com.vanthan.vn.repository.UserRepository;
 import com.vanthan.vn.service.OrderService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import com.vanthan.vn.util.CommonUtil;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
@@ -29,8 +25,8 @@ import java.util.*;
 @Log4j2
 public class OrderServiceImp implements OrderService {
 
-    @Value("${base.url.authen}")
-    private String baseUrl;
+    //    @Value("${base.url.authen}")
+//    private String baseUrl;
     private final OrderDetailRepository orderDetailRepository;
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
@@ -38,6 +34,9 @@ public class OrderServiceImp implements OrderService {
     private final JwtUtils jwtUtils;
 
     private final AuthTokenFilter authTokenFilter;
+
+    @Autowired
+    private SendMailServiceImpl sendMailService;
 
 
     @Autowired
@@ -54,9 +53,10 @@ public class OrderServiceImp implements OrderService {
     public BaseResponse<String> createOrder(OrderForm form, HttpServletRequest request) {
         BaseResponse<String> response = new BaseResponse<>();
 
-        EmailDTO emailDTO = new EmailDTO();
-        // Map props => set props email
+//        EmailDTO emailDTO = new EmailDTO();
+//        // Map props => set props email
         Map<String, Object> props = new HashMap<String, Object>();
+        List<OrderItem> orderList = new ArrayList<>();
 
         // get order item from the request list
         List<OrderLineForm> orderLines = form.getOrderLines();
@@ -71,10 +71,10 @@ public class OrderServiceImp implements OrderService {
         String email = userInfo.get("email").toString();
         String username = userInfo.get("username").toString();
 
-        // SET EMAILĐTO
-        emailDTO.setTemplate("mail-template");
-        emailDTO.setSubject("Subject_TEST");
-        emailDTO.setRecipient(email);
+//        // SET EMAILĐTO
+//        emailDTO.setTemplate("mail-template");
+//        emailDTO.setSubject("Subject_TEST");
+//        emailDTO.setRecipient(email);
 
         //get user info from token then set to order
         order.setUserId(userid);
@@ -118,30 +118,40 @@ public class OrderServiceImp implements OrderService {
             item.setProductName(product.getName());
             item.setQuantity(orderLine.getQuantity());
             item.setListPrice(product.getPrice());
+            item.setTotalPrice(product.getPrice() * orderLine.getQuantity());
             orderDetailRepository.save(item);
+
+            orderList.add(item);
+        }
+
+
+        // Call API Send Mail
+        EmailDTO emailDTO = new EmailDTO();
+        emailDTO.setTemplate("mail-template");
+        emailDTO.setRecipient(email);
+        emailDTO.setSubject("Test mail");
+
+        System.out.println(orderList);
+        log.error(orderList);
+        props.put("fullName", username);
+        props.put("product", orderList);
+        props.put("paymentMethod", order.getPaymentMethod());
+        props.put("total", order.getTotalCost());
+        props.put("status", order.getStatus());
+        emailDTO.setProps(props);
+        try {
+            sendMailService.sendMail2(emailDTO);
+        } catch (MessagingException e) {
+            e.printStackTrace();
+            log.error(e.getMessage());
+            response.setCode("001");
+            response.setMessage("Send mail fail" + e.getMessage() + e.getStackTrace());
         }
 
         response.setCode("00");
         response.setMessage("success");
         response.setBody("Created an order");
         return response;
-        // Call API Send Mail
-        String url = baseUrl + "/sendMail";
-        props.put("fullName", username);
-        props.put("product", orderLines);
-        props.put("paymentMethod", order.getPaymentMethod());
-        props.put("total", order.getTotalCost());
-        props.put("status", order.getStatus());
-        emailDTO.setProps(props);
-
-        log.info("Resquest Body {}", CommonUtil.convertFromObject(emailDTO));
-
-        RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(token);
-        HttpEntity<EmailDTO> requestSaveProduct = new HttpEntity<>(emailDTO, headers);
-        restTemplate.exchange(url, HttpMethod.POST, requestSaveProduct, new ParameterizedTypeReference<BaseResponse<Object>>() {
-        });
     }
 
     @Override
