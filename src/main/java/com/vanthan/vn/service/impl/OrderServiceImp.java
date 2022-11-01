@@ -11,6 +11,7 @@ import com.vanthan.vn.repository.OrderRepository;
 import com.vanthan.vn.repository.ProductRepository;
 import com.vanthan.vn.repository.UserRepository;
 import com.vanthan.vn.service.OrderService;
+import org.apache.kafka.common.errors.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
@@ -40,8 +41,8 @@ public class OrderServiceImp implements OrderService {
     }
 
     @Override
-    public BaseResponse<String> createOrder(OrderForm form, String token) {
-        BaseResponse<String> response = new BaseResponse<>();
+    public BaseResponse<OrderResult> createOrder(OrderForm form, String token) {
+        BaseResponse<OrderResult> response = new BaseResponse<>();
         // get order item from the request list
         List<OrderLineForm> orderLines = form.getOrderLines();
         Order order = new Order();
@@ -56,8 +57,8 @@ public class OrderServiceImp implements OrderService {
         order.setUserId(userid);
         order.setUsername(username);
         order.setEmail(email);
-        order.setPaymentMethod("CASH");
-        order.setStatus("CREATED");
+        order.setPaymentMethod(order.getPaymentMethod());
+        order.setStatus(Status.CREATED);
         orderRepository.save(order);
 
         for (OrderLineForm orderLine : orderLines) {
@@ -94,10 +95,16 @@ public class OrderServiceImp implements OrderService {
         }
 
         orderRepository.updateOrderById(order.getId(), order.getTotalCost(), order.getTotalItems());
+        OrderResult orderResult = new OrderResult();
+        orderResult.setOrderId(order.getId());
+        //orderResult.setItems(order.getItems());
+        orderResult.setUserResult(new UserResult(userid, email, username));
+        orderResult.setTotalCost(order.getTotalCost());
+        orderResult.setTotalItems(order.getTotalItems());
 
         response.setCode("00");
         response.setMessage("success");
-        response.setBody("Created an order");
+        response.setBody(orderResult);
         return response;
     }
 
@@ -138,8 +145,8 @@ public class OrderServiceImp implements OrderService {
         orderResult.setOrderId(orderId);
         orderResult.setTotalItems(order.getTotalItems());
         orderResult.setTotalCost(order.getTotalCost());
-        orderResult.setPaymentMethod("CASH");
-        orderResult.setStatus("CREATED");
+        orderResult.setPaymentMethod(order.getPaymentMethod());
+        orderResult.setStatus(Status.PENDING);
         response.setBody(orderResult);
         return response;
     }
@@ -157,6 +164,26 @@ public class OrderServiceImp implements OrderService {
         }
 
         response.setBody(orderRepository.findOrderByUserId(userId));
+        return response;
+    }
+
+    @Override
+    public BaseResponse<OrderResult> updateByOrderId(Order order) {
+        BaseResponse<OrderResult> response = new BaseResponse<>();
+        // check order based on id
+        Optional<Order> optionalOrder = orderRepository.findById(order.getId());
+        Order updateOrder = optionalOrder.orElseThrow(() -> new ResourceNotFoundException("Order does not exist with id: "));
+        // update order
+        List<OrderItemResult> orderItemResultList = new ArrayList<>();
+        if (updateOrder.getStatus().equals(Status.PENDING)) {
+            updateOrder.setEmail(order.getEmail());
+            for (OrderItem orderItem : order.getItems()) {
+                //updateOrder.setItems();
+                updateOrder.setPaymentMethod(order.getPaymentMethod());
+            }
+            // save to db
+            return null;
+        }
         return response;
     }
 }

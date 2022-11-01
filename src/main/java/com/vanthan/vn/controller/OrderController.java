@@ -29,7 +29,7 @@ public class OrderController {
     }
 
     @PostMapping(value = "/orders")
-    public ResponseEntity<BaseResponse<String>> createOrder(@RequestBody OrderForm form, HttpServletRequest request) {
+    public ResponseEntity<BaseResponse<OrderResult>> createOrder(@RequestBody OrderForm form, HttpServletRequest request) {
         try {
             // get username from http request
             String token = authTokenFilter.parseJwt(request);
@@ -48,7 +48,13 @@ public class OrderController {
     @GetMapping(value = "getOrders/{userId}")
     public ResponseEntity<BaseResponse<List<Order>>> findOrdersByUserId(@PathVariable int userId) {
         return ResponseEntity.ok(orderService.findOrdersByUserId(userId));
-
     }
+
+//    @PostMapping(value = "orders/{id}")
+//    public ResponseEntity<BaseResponse<OrderResult>> updateOrder(@PathVariable int id){
+//        return ResponseEntity.ok(orderService.updateByOrderId(id));
+//    }
+
+
 }
 

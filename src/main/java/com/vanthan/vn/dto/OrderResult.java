@@ -1,6 +1,8 @@
 package com.vanthan.vn.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.vanthan.vn.model.PaymentMethod;
+import com.vanthan.vn.model.Status;
 import lombok.Data;
 
 import javax.persistence.GeneratedValue;
@@ -21,6 +23,6 @@ public class OrderResult {
     private List<OrderItemResult> items;
     private int totalItems;
     private int totalCost;
-    private String paymentMethod;
-    private String status;
+    private PaymentMethod paymentMethod;
+    private Status status;
 }

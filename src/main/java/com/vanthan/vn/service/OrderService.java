@@ -9,7 +9,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 public interface OrderService {
-    BaseResponse<String> createOrder(OrderForm form, String token);
+    BaseResponse<OrderResult> createOrder(OrderForm form, String token);
     BaseResponse<OrderResult> getOrder(int orderId);
     BaseResponse<List<Order>> findOrdersByUserId(int userId);
+    BaseResponse<OrderResult> updateByOrderId(Order order);
 }

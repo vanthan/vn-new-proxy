@@ -23,8 +23,8 @@ public class Order {
     private List<OrderItem> items;
     private int totalItems;
     private int totalCost;
-    private String paymentMethod;
-    private String status;
+    private PaymentMethod paymentMethod;
+    private Status status;
    // private String paymentId;
 
 
